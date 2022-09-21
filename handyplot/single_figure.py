@@ -1,79 +1,79 @@
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 
 
-class SingleFigure:
+class FigureBase:
     def __init__(self):
-        self._base_data = None
-        self._fig_list = []
-        self._legend_list = []
-        self._x_limit = None
-        self._y_limit = None
-        plt.figure()
+        mpl.rcParams["axes.autolimit_mode"] = "round_numbers"  # This expands the axis limits to the next round number.
+        mpl.rcParams["font.family"] = ["Arial"]  # Set global font.
+        mpl.rcParams["font.size"] = 9  # Set global font size.
 
-    def add_legend(self, loc="best"):
-        """
-        Add legend for figure.
-        :param loc: str | Legend location. (best, upper+l/r/c, lower+l/r/c, right, center+l/r, center)
-        :return:
-        """
-        plt.legend(self._fig_list, self._legend_list, loc=loc)
+        self._basic_color_list = []
+        self._fig = None
+        self._lines_num = 0
+        self._use_color = self._basic_color_list
 
-    def add_line_data(self, data, linewidth=1, color="black", legend=""):
-        """
-        One line each time.
-        :param data:
-        :return:
-        """
-        fig, = plt.plot(self._base_data, data, linewidth=linewidth, c=color)
-        self._fig_list.append(fig)
-        self._legend_list.append(legend)
+        self.__load_colors()
 
-    def add_point_data(self, data, marker="o", color="w", edgecolor="red", size=35, legend=""):
-        fig = plt.scatter(self._base_data, data, marker=marker, color=color, edgecolor=edgecolor, s=size)
-        self._fig_list.append(fig)
-        self._legend_list.append(legend)
-
-    def save(self, filename="unknown", dpi=1000):
-        plt.savefig(filename, dpi=dpi)
-
-    def set_base_data(self, base_data):
-        self._base_data = base_data
-        self._x_limit = [base_data.min(), base_data.max()]
-
-    def set_title(self, title):
-        plt.title(title)
-
-    def set_x_label(self, text):
-        plt.xlabel(text)
-
-    def set_x_limit(self, range):
-        self._x_limit = []
-        self._x_limit.append(range[0])
-        self._x_limit.append(range[1])
-
-    def set_y_label(self, text):
-        plt.ylabel(text)
-
-    def set_y_limit(self, range):
-        self._y_limit = []
-        self._y_limit.append(range[0])
-        self._y_limit.append(range[1])
+    def save(self, filename):
+        self._fig.savefig(filename, dpi=600)
 
     def show(self):
-        if self._x_limit is not None : plt.xlim(self._x_limit)
-        if self._y_limit is not None : plt.ylim(self._y_limit)
-        plt.show()
+        self._fig.show()
+
+    def __load_colors(self):
+        self._basic_color_list.append((234/255, 112/255, 112/255, 1))  # Red.
+        self._basic_color_list.append((38/255, 148/255, 171/255, 1))  # Blue.
+        self._basic_color_list.append((178/255, 222/255, 129/255, 1))  # Fresh green.
+        self._basic_color_list.append((229/255, 149/255, 114/255, 1))  # Orange.
+        self._basic_color_list.append((150/255, 206/255, 180/255, 1))  # Light green.
+        self._basic_color_list.append((184/255, 108/255, 153/255, 1))  # purple.
+        self._basic_color_list.append((153/255, 171/255, 185/255, 1))  # Gray.
+        self._basic_color_list.append((194/255, 157/255, 115/255, 1))  # Brown.
 
 
-if __name__ == "__main__":
-    figure_1 = SingleFigure()
-    base_data = np.array([0, 1, 2, 3, 4, 5])
-    figure_1.set_base_data(base_data)
-    figure_1.add_point_data(np.array([1, 2, 3, 4, 5, 6]))
-    figure_1.add_line_data(np.array([0, 3, 2, 1, 4, 5]))
-    figure_1.set_title("font")
-    figure_1.set_x_label("x")
-    figure_1.set_y_label("y")
-    figure_1.set_y_limit([0, 6])
-    figure_1.show()
+class SingleFigure(FigureBase):
+    def __init__(self):
+        FigureBase.__init__(self)
+
+        self._fig, self._axes = plt.subplots()
+
+    def add_legend(self, loc="best", ncol=1):
+        self._axes.legend(loc=loc, ncol=ncol)
+
+    def add_line(self, base, data, label=None):
+        line, = self._axes.plot(base, data, color=self._use_color[self._lines_num%len(self._use_color)])
+
+        if label is not None:
+            line.set_label(label)
+
+        self._lines_num += 1
+
+    def add_points(self, base, data, label=None):
+        scatter = self._axes.scatter(base, data)
+
+        if label is not None:
+            scatter.set_label(label)
+
+    def open_grid(self):
+        self._axes.grid(color=(235/255, 235/255, 235/255))
+
+    def set_title(self, title):
+        self._axes.set_title(title)
+
+    def set_x_label(self, text):
+        self._axes.set_xlabel(text)
+
+    def set_x_limit(self, range, segment_num=None):
+        self._axes.set_xlim(range)
+        if segment_num is not None:
+            self._axes.xaxis.set_ticks(np.linspace(range[0], range[1], segment_num+1))
+
+    def set_y_label(self, text):
+        self._axes.set_ylabel(text)
+
+    def set_y_limit(self, range, segment_num=None):
+        self._axes.set_ylim(range)
+        if segment_num is not None:
+            self._axes.yaxis.set_ticks(np.linspace(range[0], range[1], segment_num+1))

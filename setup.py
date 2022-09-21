@@ -6,8 +6,8 @@ Type this in terminal to upgrade the package.
 from setuptools import find_packages, setup
 
 setup(name="handyplot",
-      version="0.2",
-      description="Add contour class.",
+      version="0.3",
+      description="Online new single figure class.",
       author="Hong Peng",
       python_requires=">=3.8.0",
       url="https://github.com/minho-hong/handyplot.git",
